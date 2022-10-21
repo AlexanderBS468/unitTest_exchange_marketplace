@@ -4,6 +4,8 @@ namespace Tests\Unit\Feed\Engine\Command;
 use Bitrix\Main;
 use Bitrix\Catalog;
 use Avito\Export\Feed;
+use Avito\Export\Glossary;
+use Avito\Export\Logger;
 use PHPUnit\Framework\TestCase;
 
 class PrimaryCollisionTest extends TestCase
@@ -21,7 +23,7 @@ class PrimaryCollisionTest extends TestCase
 
 		$this->command = new Feed\Engine\Command\PrimaryCollision(
 			Feed\Engine\Steps\Offer\Table::getEntity(),
-			new Feed\Logger\Logger(1)
+			new Logger\Logger(Glossary::SERVICE_FEED, 1)
 		);
 		[$this->simpleCatalogId, $this->fullCatalogId] = $this->catalogTypes();
 		$this->siteId = \CSite::GetDefSite();
