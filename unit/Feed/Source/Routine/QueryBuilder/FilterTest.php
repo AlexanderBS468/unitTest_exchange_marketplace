@@ -131,19 +131,19 @@ class FilterTest extends TestCase
 				'FIELD' => 'ELEMENT.ID',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 100,
-				'LEVEL' => 0,
+				'GLUE' => 'AND',
 			],
 			[
 				'FIELD' => 'ELEMENT.NAME',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 'dummy',
-				'LEVEL' => 1,
+				'GLUE' => 'AND',
 			],
 			[
 				'FIELD' => 'ELEMENT.XML_ID',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 'dummy',
-				'LEVEL' => 1,
+				'GLUE' => 'OR',
 			],
 		]);
 		$filters = $this->filter->compile($filterMap, $this->contextWithOffers);
@@ -178,19 +178,19 @@ class FilterTest extends TestCase
 				'FIELD' => 'ELEMENT.ID',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 100,
-				'LEVEL' => 0,
+				'GLUE' => 'AND',
 			],
 			[
 				'FIELD' => 'OFFER.NAME',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 'dummy',
-				'LEVEL' => 1,
+				'GLUE' => 'AND',
 			],
 			[
 				'FIELD' => 'OFFER.XML_ID',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 'dummy',
-				'LEVEL' => 1,
+				'GLUE' => 'OR',
 			],
 		]);
 		$filters = $this->filter->compile($filterMap, $this->contextWithOffers);
@@ -230,19 +230,19 @@ class FilterTest extends TestCase
 				'FIELD' => 'ELEMENT.ID',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 100,
-				'LEVEL' => 0,
+				'GLUE' => 'AND',
 			],
 			[
 				'FIELD' => 'PRODUCT.QUANTITY',
 				'COMPARE' => Feed\Source\Field\Condition::MORE_OR_EQUAL,
 				'VALUE' => 1,
-				'LEVEL' => 1,
+				'GLUE' => 'AND',
 			],
 			[
 				'FIELD' => 'STORE.STORE_AMOUNT_1',
 				'COMPARE' => Feed\Source\Field\Condition::MORE_OR_EQUAL,
 				'VALUE' => 1,
-				'LEVEL' => 1,
+				'GLUE' => 'OR',
 			],
 		]);
 		$filters = $this->filter->compile($filterMap, $this->contextWithOffers);
@@ -307,19 +307,19 @@ class FilterTest extends TestCase
 				'FIELD' => 'ELEMENT.ID',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 100,
-				'LEVEL' => 0,
+				'GLUE' => 'AND',
 			],
 			[
 				'FIELD' => 'ELEMENT.NAME',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 'dummy',
-				'LEVEL' => 1,
+				'GLUE' => 'AND',
 			],
 			[
 				'FIELD' => 'OFFER.NAME',
 				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
 				'VALUE' => 'dummy',
-				'LEVEL' => 1,
+				'GLUE' => 'OR',
 			],
 		]);
 		$filters = $this->filter->compile($filterMap, $this->contextWithOffers);
@@ -361,6 +361,70 @@ class FilterTest extends TestCase
 
 		$this->assertSame($elementFilter, $this->filterToArray($filters[1]['ELEMENT']));
 		$this->assertSame($offerFilter, $filters[1]['OFFER']);
+	}
+
+	public function testLogicElementAndOfferWithOr() : void
+	{
+		$filterMap = new Feed\Setup\FilterMap([
+			[
+				'FIELD' => 'ELEMENT.ID',
+				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
+				'VALUE' => 100,
+				'GLUE' => 'AND',
+			],
+			[
+				'FIELD' => 'ELEMENT.NAME',
+				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
+				'VALUE' => 'dummy',
+				'GLUE' => 'OR',
+			],
+			[
+				'FIELD' => 'OFFER.ID',
+				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
+				'VALUE' => 100,
+				'GLUE' => 'AND',
+			],
+			[
+				'FIELD' => 'OFFER.NAME',
+				'COMPARE' => Feed\Source\Field\Condition::EQUAL,
+				'VALUE' => 'dummy',
+				'GLUE' => 'OR',
+			],
+		]);
+		$filters = $this->filter->compile($filterMap, $this->contextWithOffers);
+
+		$this->assertCount(1, $filters);
+
+		$offerFilter = array_merge(
+			$this->defaultFilter($this->contextWithOffers->offerIblockId()),
+			[
+				[
+					[
+						'LOGIC' => 'OR',
+						'=ID' => 100,
+						'=NAME' => 'dummy'
+					],
+				],
+			]
+		);
+		$elementFilter = array_merge(
+			$this->defaultFilter($this->contextWithOffers->iblockId()),
+			[
+				[
+					[
+						'LOGIC' => 'OR',
+						'=ID' => 100,
+						'=NAME' => 'dummy'
+					],
+				],
+			],
+			[
+				[ 'ID' => $offerFilter ],
+			]
+		);
+
+		$this->assertSame($elementFilter, $this->filterToArray($filters[0]['ELEMENT']));
+		$this->assertSame($offerFilter, $filters[0]['OFFER']);
 	}
 
 	private function defaultFilter(int $iblockId) : array
