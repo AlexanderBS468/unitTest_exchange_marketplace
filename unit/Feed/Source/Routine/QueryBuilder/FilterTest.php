@@ -10,14 +10,17 @@ class FilterTest extends TestCase
 	protected $filter;
 	protected $contextWithOffers;
 
+	/** @noinspection PhpUndefinedConstantInspection */
 	protected function setUp() : void
 	{
 		parent::setUp();
 
+		$iblockId = defined('CATALOG_IBLOCK_ID') ? CATALOG_IBLOCK_ID : 2;
+
 		$this->filter = new Feed\Source\Routine\QueryBuilder\Filter(
 			new Feed\Source\FetcherPool()
 		);
-		$this->contextWithOffers = new Feed\Source\Context(2);
+		$this->contextWithOffers = new Feed\Source\Context($iblockId);
 	}
 
 	public function testElement() : void
