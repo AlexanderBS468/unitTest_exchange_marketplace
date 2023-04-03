@@ -90,6 +90,48 @@ class FilterTest extends TestCase
 		$this->assertSame($offerFilter, $filters[1]['OFFER']);
 	}
 
+	public function testProductAvailableYes() : void
+	{
+		$filterMap = new Feed\Setup\FilterMap([
+			[
+				'FIELD' => 'PRODUCT.AVAILABLE',
+				'COMPARE' => Feed\Source\Field\Condition::AT_LIST,
+				'VALUE' => 'Y',
+			],
+		]);
+		$filters = $this->filter->compile($filterMap, $this->contextWithOffers);
+
+		$this->assertCount(1, $filters);
+		$this->assertSame(
+			$this->defaultFilter($this->contextWithOffers->iblockId()),
+			$filters[0]['ELEMENT']
+		);
+		$this->assertSame(
+			$this->defaultFilter($this->contextWithOffers->offerIblockId()),
+			$filters[0]['OFFER']
+		);
+	}
+
+	public function testProductAvailableAny() : void
+	{
+		$filterMap = new Feed\Setup\FilterMap([
+			[
+				'FIELD' => 'PRODUCT.AVAILABLE',
+				'COMPARE' => Feed\Source\Field\Condition::AT_LIST,
+				'VALUE' => 'ANY',
+			],
+		]);
+		$filters = $this->filter->compile($filterMap, $this->contextWithOffers);
+
+		$this->assertCount(1, $filters);
+		$this->assertSame(
+			array_diff_key($this->defaultFilter($this->contextWithOffers->iblockId()), [
+				'=AVAILABLE' => true,
+			]),
+			$filters[0]['ELEMENT']
+		);
+	}
+
 	public function testOfferRequired() : void
 	{
 		$filterMap = new Feed\Setup\FilterMap([
@@ -430,7 +472,7 @@ class FilterTest extends TestCase
 	private function defaultFilter(int $iblockId) : array
 	{
 		return [
-			'=IBLOCK_ID' => $iblockId,
+			'IBLOCK_ID' => $iblockId,
 			'=ACTIVE' => 'Y',
 			'=ACTIVE_DATE' => 'Y',
 			'=AVAILABLE' => 'Y',
